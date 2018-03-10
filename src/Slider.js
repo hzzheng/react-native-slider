@@ -9,6 +9,7 @@ import {
   PanResponder,
   Animated
 } from 'react-native';
+import ToolTip from './Tooltip';
 
 const getValue = (props, defaultValue) => {
   if ('value' in props) {
@@ -43,8 +44,8 @@ export default class Slider extends Component {
     });
 
     this.state = {
-      // value: getValue(props, 0)
-      value: 60
+      value: getValue(props, 0),
+      tooltip: false,
     }
   }
 
@@ -57,6 +58,7 @@ export default class Slider extends Component {
     if (disabled) {
       return false;
     }
+    this.setState({ tooltip: true });
     return true;
   }
 
@@ -105,6 +107,7 @@ export default class Slider extends Component {
   }
 
   handlePanResponderRelease = (_event, { dx: offsetX }) => {
+    this.setState({ tooltip: false });
     if (isNaN(offsetX)) {
       return false;
     }
@@ -154,7 +157,6 @@ export default class Slider extends Component {
       this.getMaxOffset(() => {
         const offset = this.getOffsetByValue(this.state.value);
         this.offsetStart = offset;
-        // this.setState({ offset });
         Animated.timing(this.offset, {
           toValue: offset,
           duration: 300,
@@ -164,34 +166,28 @@ export default class Slider extends Component {
   }
 
   render() {
-    const { value } = this.state;
+    const { value, tooltip } = this.state;
 
     return (
-      <View style={styles.container}>
-        <View style={styles.slider}>
-          <View style={styles.sliderLine} ref={line => this.line = line}>
-            <Animated.View style={[styles.sliderLineBg, { width: this.offset }]} />
-          </View>
-
-          <Animated.View 
-            style={[styles.sliderHandle, { left: this.offset }]}
-            { ...this.panResponder.panHandlers}
-          >
-            <View style={styles.sliderHandleShadow}/>
-          </Animated.View>
+      <View style={styles.slider}>
+        <View style={styles.sliderLine} ref={line => this.line = line}>
+          <Animated.View style={[styles.sliderLineBg, { width: this.offset }]} />
         </View>
+
+        <Animated.View 
+          style={[styles.sliderHandle, { left: this.offset }]}
+          { ...this.panResponder.panHandlers}
+        > 
+          <ToolTip message={value} visible={tooltip}>
+            <View style={styles.sliderHandleShadow}/>
+          </ToolTip>
+        </Animated.View>
       </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-  },
   slider: {
     position: 'relative',
     width: '100%',
